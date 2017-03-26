@@ -1,0 +1,827 @@
+#include "index.h"
+#include "unistd.h"  
+#include "google/protobuf/text_format.h"
+#include <vector>
+#include <cstdlib>
+#include <sstream>
+#include "boost/algorithm/string.hpp"
+#include "boost/timer.hpp"
+#include "boost/thread.hpp"
+#include "google/protobuf/text_format.h"
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include "caffe/layers/memory_data_layer.hpp"
+#include "caffe/blob.hpp"
+#include "caffe/common.hpp"
+#include "caffe/net.hpp"
+#include "caffe/proto/caffe.pb.h"
+#include "caffe/util/db.hpp"
+#include "caffe/util/format.hpp"
+#include "caffe/util/io.hpp"
+#include "faster_rcnn.hpp"
+#define TOTALPROCESS 10000
+using caffe::Blob;
+using caffe::Caffe;
+using caffe::Datum;
+using caffe::Net;
+namespace db = caffe::db;
+
+const std::string PROTO_FILE_PATH = "./examples/_temp/train_val_googlenet_hash_all_relu_wd.prototxt";
+const std::string PROTO_MODEL_PATH = "./examples/_temp/wd_google_all_hash_relu_new_iter_70000.caffemodel";
+const std::string BLOB_NAME = "fc_hash/relu";
+const std::string SHELL_PATH="./examples/_temp/train_val_googlenet_hash_all_relu_wd.prototxt.sh";
+const std::string FILE_LIST_PATH="./examples/_temp/file_list";
+const int NUM_THREADS=7;
+double calc(int end,int label,SortTable*,Info_String* info_str);
+template <typename Dtype>
+caffe::Net<Dtype>* Net_Init_Load(std::string param_file, std::string pretrained_param_file, caffe::Phase phase);
+template<typename Dtype>
+void feature_extraction_pipeline(char* p,const char* CPU_MODE, int count,int GPU_ID);
+
+
+int inital_feature_pipeline(int argc, char** argv);
+int calc_feature_pipeline(int argc, char** argv);
+int Add_feature_pipeline(int argc, char** argv);
+int inital_feature_from_origin(int argc,char** argv);
+int detect_feature(int argc, char** argv);
+
+
+int main(int argc, char** argv){
+	char ch;
+//	std::cout<<argv[0]<<std::endl;
+	while ((ch = getopt(argc, argv, "iacod")) != EOF)
+	{
+		switch (ch)
+		{
+		case 'i':
+			argc -= optind;
+			argv += optind;
+			return inital_feature_pipeline(argc, argv);
+		case 'a':
+			argc -= optind;
+			argv += optind;
+			return Add_feature_pipeline(argc, argv);
+		case 'c':
+			argc -= optind;
+			argv += optind;
+			return calc_feature_pipeline(argc, argv);
+		case 'o':
+			argc-=optind;
+			argv+=optind;
+			return inital_feature_from_origin(argc, argv);
+		case 'd':
+			argc -= optind;
+			argv += optind;
+			return detect_feature(argc, argv);
+		default:
+			return 1;
+		}
+	}
+
+}
+
+int inital_feature_pipeline(int argc, char** argv){
+	google::InitGoogleLogging(argv[0]);
+	const int num_required_args = 5;
+	if (argc < num_required_args) {
+		return 1;
+	}
+	int arg_pos = 0;
+
+	// create
+	void * p = CreateIndex(0);
+
+	//init 
+	std::string filename(argv[arg_pos++]);
+	std::string ROOT_DIR(argv[arg_pos++]);
+	int count = atoi(argv[arg_pos++]);
+	int Batch_Size = atoi(argv[arg_pos++]);
+	std::string save_filename(argv[arg_pos++]);
+
+	//Create files
+	if (std::ifstream(PROTO_FILE_PATH.c_str(), std::ios::in)){
+		remove(PROTO_FILE_PATH.c_str());
+	}
+
+	std::stringstream int_stream;
+	int_stream << Batch_Size;
+	std::string out_dir = "sh "+ SHELL_PATH +" "+ int_stream.str();
+	system(out_dir.c_str());
+
+	//GPU_MODE
+	char* mode = NULL;
+	int dev_id = 0;
+	if (argc > arg_pos){
+		mode = (char*)(std::string(argv[arg_pos++]).c_str());
+		dev_id = atoi(argv[arg_pos++]);
+	}
+
+
+
+	//open space
+	Info_String* info_str = new Info_String[count];
+    	int str_label=0,id,toid;
+    	std::string file_list_string;
+    	std::vector< std::string > file_name_list;
+   
+    	std::ifstream in_file_list(filename.c_str(), std::ios::in);
+	
+	char* Array_Data = new char[count*TOTALBYTESIZE];
+
+	std::ofstream out_file_list(FILE_LIST_PATH.c_str(), std::ios::out);
+	//std::cout<<"count:  "<<count<<std::endl;
+	for (int i = 0; i < count; i++){
+
+		getline(in_file_list, file_list_string);
+		boost::split(file_name_list, file_list_string, boost::is_any_of(" ,!"), boost::token_compress_on);
+		//in_file_list >> file_name_list[0]>>file_name_list[1];
+
+		out_file_list << ROOT_DIR << file_name_list[0] <<".jpg"<< " " << file_name_list[1] << std::endl;
+		strcpy(info_str[i].info, (file_name_list[0] + " " + file_name_list[1]).c_str());
+	}
+	in_file_list.close();
+	out_file_list.close();
+	//std::cout<<argc<<"  "<<arg_pos<<std::endl;
+	feature_extraction_pipeline<float>(Array_Data, mode, count, dev_id);
+//	std::cout<<"feature done"<<std::endl;
+	feature*temp = (feature*)p;
+//	ofstream out_te("/home/slh/test/test/reslut.txt",std::ios::app);
+//	out_te<<(int)Array_Data[0];
+//	for(int i=1;i<=count*TOTALBYTESIZE-1;i++){
+//		if(i%1024==0){
+//			out_te<<endl;
+//		}else out_te<<" "<<(int)Array_Data[i];
+//	}	
+
+	
+	InitIndex(p, Array_Data, info_str, count);
+	//by default,the label file is saved as the name of "filename+_info"
+	std::string str = save_filename + "_info";
+	ArchiveIndex(p, save_filename.c_str(), str.c_str(), count, 'w');
+
+	DeleteIndex(p);
+	std::cout << "Save done" << std::endl;
+	return 1;
+}
+
+
+
+int Add_feature_pipeline(int argc, char** argv){
+	google::InitGoogleLogging(argv[0]);
+	const int num_required_args = 3;
+	if (argc < num_required_args) {
+
+		return 1;
+	}
+	int arg_pos = 0;
+
+
+	// create
+	void * p = CreateIndex(0);
+
+	//init 
+	std::string filename(argv[arg_pos++]);
+	
+	//by default,the label file is saved as the name of "filename+_info"
+	std::string file_info = filename + "_info";
+
+	int count = atoi(argv[arg_pos++]);
+
+	LoadIndex(p, filename.c_str(), file_info.c_str(), count);
+
+	/////////////////////
+	std::cout << "success" << std::endl;
+
+	feature*temp = (feature*)p;
+
+	
+	///////////////////////////////////////
+	std::string data_file = argv[arg_pos++];
+	int count_size = 1;
+	if (arg_pos < argc){
+		count_size = atoi(argv[arg_pos++]);
+	}
+	//////////////////
+	//Add  Context from file
+
+	std::ofstream out_file_list("./examples/_temp/googlenet_relu_deploy.prototxt", std::ios::out);
+	out_file_list  << data_file.c_str() <<" "<<0<<std::endl;
+	out_file_list.close();
+	if (std::fstream(PROTO_FILE_PATH.c_str())){
+		remove(PROTO_FILE_PATH.c_str());
+
+	}
+	std::stringstream int_stream;
+	int_stream << 1;
+	std::string out_dir = "sh "+SHELL_PATH + " " + int_stream.str();
+	system(out_dir.c_str());
+	
+	char data[1024];
+	if (argc > arg_pos){
+		const char* mode = std::string(argv[arg_pos++]).c_str();
+		int dev_id=atoi(argv[arg_pos++]);
+		feature_extraction_pipeline<float>(data,mode, 1,dev_id);
+	}
+	else{
+		std::cout<<"file new"<<std::endl;
+		feature_extraction_pipeline<float>(data,NULL, 1,0);
+	}
+	for (int i=0;i<1024;i++){
+		std::cout<<data[i]<<std::endl;
+	}
+	AddToIndex(p, doHandle(data), data_file.c_str());	
+	
+	///display
+
+	ArchiveIndex(p, filename.c_str(), file_info.c_str(), temp->getCount(), 'w');
+	DeleteIndex(p);
+	return 1;
+}
+
+int calc_feature_pipeline(int argc, char** argv){
+	//InitGoogleLogging();
+	 google::InitGoogleLogging(argv[0]);
+   //  google::SetLogDestination(google::INFO,"/home//test_log/");
+	const int num_required_args = 4;
+	if (argc < num_required_args) {
+		return 1;
+	}
+	int arg_pos = 0;
+
+	// Create
+	void * p = CreateIndex(0);
+	// Create table
+	//std::string table_filename(argv[arg_pos++]);
+	std::string table_filename="./examples/_temp/index_file";
+	if(!std::fstream(table_filename.c_str())) std::cout<<"11111111111111111"<<std::endl;
+	CreateTable(table_filename.c_str(), 16);
+	//std:cout<<"adasd"<<std::endl;
+	// Load
+	std::string filename(argv[arg_pos++]);
+	int count = atoi(argv[arg_pos++]);
+	// By default,the label file is saved as the name of "filename+_info"
+	std::string file_info = filename + "_info";
+	LoadIndex(p, filename.c_str(), file_info.c_str(), count);
+	// Input retrival data
+	std::string input_filename(argv[arg_pos++]);
+	int input_count = atoi(argv[arg_pos++]);
+	std::string label,file_list_string;
+	std::ifstream in_file_list;
+	std::string ROOT_DIR;
+	std::vector< std::string > file_name_list;
+	std::vector<int> query_label;
+	std::ofstream out_file_list(FILE_LIST_PATH.c_str(), std::ios::out);
+	if(!out_file_list) return 0;
+	if(input_count==1) {
+		label=argv[arg_pos++];
+		out_file_list << input_filename.c_str() <<" "<<label<<std::endl;
+		query_label.push_back(atoi(label.c_str()));		
+	}else{
+		in_file_list.open(input_filename.c_str(), std::ios::in);
+		ROOT_DIR=argv[arg_pos++];
+	}//int i = 0;
+	//Extract feature
+	
+	if (std::fstream(PROTO_FILE_PATH.c_str())){
+		remove(PROTO_FILE_PATH.c_str());
+	}
+	//std::cout<<"asdas"<<std::endl;
+	std::stringstream int_stream;
+	if(input_count==1) int_stream<<1;
+	else int_stream << (300<input_count?300:input_count);
+	//system("pwd");
+	std::string out_dir = "sh "+SHELL_PATH+" " + int_stream.str();
+	//std::cout<<out_dir<<std::endl;
+	system(out_dir.c_str());
+	//
+	//std::cout<<"input:  "<<input_count<<std::endl;
+	for(int k=0;k<input_count && input_count>1 ;k++){
+		getline(in_file_list, file_list_string);
+		std::cout<<file_list_string<<std::endl;
+		boost::split(file_name_list, file_list_string, boost::is_any_of(" ,!"), boost::token_compress_on);
+		query_label.push_back(atoi(file_name_list[1].c_str()));
+		out_file_list << ROOT_DIR << file_name_list[0] << ".jpg" << " " << file_name_list[1] << std::endl;
+	}
+	out_file_list.close();
+	//std::cout<<"done"<<std::endl;
+	int LIMIT=atoi(argv[arg_pos++]);	
+	// Calc
+	char* mode = NULL;
+	int dev_id = 0;
+	if (argc > arg_pos){
+		mode = (char*)(std::string(argv[arg_pos++]).c_str());
+		dev_id = atoi(argv[arg_pos++]);
+	}	
+
+	timeval startTime,endTime;
+	gettimeofday(&startTime,NULL);
+	char data[1024*input_count];
+	feature_extraction_pipeline<float>(data,mode, input_count,dev_id);
+ 
+  for(int i=0;i<1024;i++){
+	cout<<data[i]<<endl;	
+}
+	gettimeofday(&endTime,NULL);
+	float Timeuse;  
+    Timeuse = 1000000*(endTime.tv_sec - startTime.tv_sec) + (endTime.tv_usec - startTime.tv_usec); 
+    Timeuse /= 1000000;
+	std::cout<<"feature extracted done, time used: "<<Timeuse<<std::endl;
+		 
+	feature* temp = (feature*)p;
+	int total=temp->getCount();
+    SortTable* sorttable=new SortTable[total];
+	DataSet* get_t=temp->getDataSet();
+	Info_String* get_info=temp->getInfoSet();
+	
+	std::ifstream in_label;
+	in_label.open("./examples/_temp/labellist.txt", std::ios::in); 
+	for (int i = 0; i < 141756; i++){
+		int name,datax;
+		in_label >> name >> datax;
+		labelList.insert(std::pair<int, int>(name, datax));
+	}
+	in_label.close();	
+	int i=0;
+	double ress=0;
+	float totaltime=0;
+	//cout<<"label done"<<endl;
+	while(i<input_count){
+		std::string res;
+		int * dt=doHandle(data+i*1024);
+
+		//new thread change
+		boost::thread_group threads;
+		int index_num = 0;
+		//
+		gettimeofday(&startTime,NULL);
+		if (total % NUM_THREADS != 0){
+			index_num = retrival(dt, get_t, get_info, total, res, BYTE_INDEX, LIMIT, sorttable);
+		}
+		else{
+			int num_record[10];
+			for (int k = 0; k < NUM_THREADS; k++){
+				cout<<"k:"<<k<<endl;
+				threads.create_thread(boost::bind(&retrival_thread, dt, &get_t[total/NUM_THREADS*k],total/NUM_THREADS*k, total / NUM_THREADS, BYTE_INDEX, LIMIT, &sorttable[(total / NUM_THREADS)*k], num_record+k));
+			}
+			threads.join_all();
+			int begin = num_record[0];
+			int end = 0;
+			cout<<"done"<<endl;
+			for (int k = 1; k < NUM_THREADS; k++){
+				end = 0;
+				cout <<num_record[k]<<endl;
+				while (end < num_record[k]){
+					sorttable[begin].sum = sorttable[(total / NUM_THREADS)*k+end].sum;
+					sorttable[begin].info = sorttable[(total / NUM_THREADS)*k+end].info;
+					begin++;
+					end++;
+				}
+			}
+			index_num = 300<begin ? 300 : begin;
+			findKMax(sorttable, 0, begin - 1, index_num);
+			std::sort(sorttable, sorttable + index_num - 1);
+			res = get_info[sorttable[0].info].info;
+			
+		}
+		gettimeofday(&endTime,NULL);
+		Timeuse = 1000000*(endTime.tv_sec - startTime.tv_sec) + (endTime.tv_usec - startTime.tv_usec); 
+    	Timeuse /= 1000000;
+		totaltime+=Timeuse;
+		//cout<<"One query time: "<<Timeuse<<std::endl;
+//		double re=calc(index_num,query_label[i],sorttable,get_info);
+		//ress+=re;
+		ofstream recout("/home/slh/pro/run/runResult/result.txt",std::ios::out);
+		cout<<"first"<<endl;
+		recout << Timeuse << endl;
+		int return_num= 20<index_num ? 20:index_num;
+		for( int i=0;i<index_num;i++){
+			std::vector< std::string > file_name_result;
+	        std::string file_result=get_info[sorttable[i].info].info;
+			boost::split(file_name_result,file_result, boost::is_any_of(" ,!"), boost::token_compress_on);
+			recout <<"/cropdata/" << file_name_result[0]<<".jpg" << endl;
+		
+		}
+		i++;
+		delete[] dt;
+	}
+	//std::cout<<"res total: "<<ress/input_count<<" Total Time average: "<<totaltime/input_count<<std::endl;
+
+	//recout.close();
+	return 1;
+}
+
+
+template<typename Dtype>
+void feature_extraction_pipeline(char* p,const char* CPU_MODE, int count,int GPU_ID) {
+	//::google::InitGoogleLogging("~/");
+	/*const int num_required_args = 6;
+	if (argc < num_required_args) {
+	LOG(ERROR) <<
+	"This program takes in a trained network and an input data layer, and then"
+	" extract features of the input data produced by the net.\n"
+	"Usage: extract_features  pretrained_net_param"
+	"  feature_extraction_proto_file  extract_feature_blob_name1[,name2,...]"
+	"  save_feature_dataset_filename1[,name2,...]  num_mini_batches "
+	"  [CPU/GPU] [DEVICE_ID=0]\n"
+	"Note: you can extract multiple features in one pass by specifying"
+	" multiple feature blob names and dataset names separated by ','."
+	" The names cannot contain white space characters and the number of blobs"
+	" and datasets must be equal.";
+	return 1;
+	}*/
+	//int arg_pos = num_required_args;
+
+	//arg_pos = num_required_args;
+	if ( CPU_MODE != NULL && (strcmp(CPU_MODE, "GPU") == 0)) {
+	//	LOG(ERROR) << "Using GPU";
+		int device_id = 0;
+		device_id = GPU_ID;
+		CHECK_GE(device_id, 0);
+
+	//	LOG(ERROR) << "Using Device_id=" << device_id;
+		Caffe::SetDevice(device_id);
+		Caffe::set_mode(Caffe::GPU);
+	}
+	else {
+
+	//	LOG(ERROR) << "Using CPU";
+		Caffe::set_mode(Caffe::CPU);
+	}
+	std::string pretrained_binary_proto(PROTO_MODEL_PATH);
+
+	// Expected prototxt contains at least one data layer such as
+	//  the layer data_layer_name and one feature blob such as the
+	//  fc7 top blob to extract features.
+
+	std::string feature_extraction_proto(PROTO_FILE_PATH);
+	boost::shared_ptr<Net<Dtype> > feature_extraction_net(
+		new Net<Dtype>(feature_extraction_proto, caffe::TEST));
+	feature_extraction_net->CopyTrainedLayersFrom(pretrained_binary_proto);
+
+
+
+	std::string extract_feature_blob_names(BLOB_NAME);
+	std::vector<std::string> blob_names;
+	boost::split(blob_names, extract_feature_blob_names, boost::is_any_of(","));
+
+	
+	//std::string save_feature_dataset_names(argv[++arg_pos]);
+	//std::vector<std::string> dataset_names;
+	//boost::split(dataset_names, save_feature_dataset_names,
+	//	boost::is_any_of(","));
+	//CHECK_EQ(blob_names.size(), dataset_names.size()) <<
+	//	" the number of blob names and dataset names must be equal";
+
+	size_t num_features = blob_names.size();
+
+	for (size_t i = 0; i < num_features; i++) {
+		CHECK(feature_extraction_net->has_blob(blob_names[i]))
+			<< "Unknown feature blob name " << blob_names[i]
+			<< " in the network " << feature_extraction_proto;
+	}
+	/////modify by su
+	int num_mini_batches = count / feature_extraction_net->blob_by_name(blob_names[0])->num();
+	//std::vector<boost::shared_ptr<writeDb<Dtype> > > feature_dbs;
+	//for (size_t i = 0; i < num_features; ++i) {
+	//	LOG(INFO) << "Opening dataset " << dataset_names[i];
+	//	writeDb<Dtype>* db = new writeDb<Dtype>();
+	//	db->open(dataset_names[i]);
+	//	feature_dbs.push_back(boost::shared_ptr<writeDb<Dtype> >(db));
+	//}
+	/*
+	¿ªÊý×é
+	*/
+	char* feature_dbs = p;
+	std::vector<caffe::Blob<float>*> input_vec;
+	//LOG(ERROR) << "Extracting Features";
+	Datum datum;
+	std::vector<int> image_indices(num_features, 0);
+	for (int batch_index = 0; batch_index < num_mini_batches; ++batch_index) {
+		std::cout<<"start"<<std::endl;
+		feature_extraction_net->Forward(input_vec);
+		for (int i = 0; i < num_features; ++i) {
+			const boost::shared_ptr<Blob<Dtype> > feature_blob =
+				feature_extraction_net->blob_by_name(blob_names[i]);
+			int batch_size = feature_blob->num();
+			
+			int dim_features = feature_blob->count() / batch_size;
+			const Dtype* feature_blob_data;
+			for (int n = 0; n < batch_size; ++n) {
+	
+				feature_blob_data = feature_blob->cpu_data() +
+					feature_blob->offset(n);
+				//LOG(ERROR)<<"dim_features:   "<< dim_features;       
+				for (int d = 0; d < dim_features; ++d) {
+					//std::cout << "data:   " << d << " " << feature_blob_data[d] << std::endl;
+					//feature_dbs[n]->write(n);
+					if (feature_blob_data[d]>0){
+						feature_dbs[d + (n + batch_index*batch_size)*dim_features] = 1;
+					}
+					else{
+						feature_dbs[d + (n + batch_index*batch_size)*dim_features] = 0;
+					}
+					//feature_dbs.at(i)->write(" ");
+				}
+			}
+			  // for (int n = 0; n < batch_size; ++n)
+		}  // for (int i = 0; i < num_features; ++i)
+	}  // for (int batch_index = 0; batch_index < num_mini_batches; ++batch_index)
+	// write the last batch
+	//for (int i = 0; i<num_features; ++i){
+	//	feature_dbs.at(i)->close();
+	//}
+	bool isRemain=false;
+	int remain = count - num_mini_batches*(feature_extraction_net->blob_by_name(blob_names[0])->num());
+	if(remain >0 ){
+		isRemain=true;
+		feature_extraction_net->Forward(input_vec);
+	} 
+	for (int i = 0; isRemain && i < num_features; ++i) {
+		//std::cout<<"one pages"<<std::endl;
+		const boost::shared_ptr<Blob<Dtype> > feature_blob =
+			feature_extraction_net->blob_by_name(blob_names[i]);
+		int batch_size = feature_blob->num();
+		int dim_features = feature_blob->count() / batch_size;
+		const Dtype* feature_blob_data;
+		for (int n = 0; n < remain; ++n) {//data new
+			feature_blob_data = feature_blob->cpu_data() +
+				feature_blob->offset(n);
+			//LOG(ERROR)<<"dim_features:   "<< dim_features;       
+			for (int d = 0; d < dim_features; ++d) {
+				//std::cout << "data:   " << d << " " << feature_blob_data[d] << std::endl;
+				//feature_dbs[n]->write(n);
+				//std::cout<<feature_blob_data[d]<<std::endl;
+				if (feature_blob_data[d]>0.001){
+			
+					feature_dbs[(num_mini_batches*batch_size+n)*dim_features+d] = 1;
+				}
+				else{
+					feature_dbs[(num_mini_batches*batch_size+n)*dim_features+d] = 0;
+				}
+				//feature_dbs.at(i)->write(" ");
+			}
+		}  // for (int n = 0; n < remian; ++n)
+	}  // for (int i = 0; i < num_features; ++i)
+	
+//	LOG(ERROR) << "Successfully extracted the features!";
+	std::cout<<"Successfully"<<std::endl;
+	return;
+}
+
+
+double calc(int end,int label,SortTable* sorttable,Info_String* info_str){
+	int num = 0;
+	double res=0;
+	std::vector< std::string > file_name_list;
+	for (int i = 0; i < end; i++){
+		boost::split(file_name_list, info_str[sorttable[i].info].info, boost::is_any_of(" ,!"), boost::token_compress_on);
+		
+		if (atoi(file_name_list[1].c_str()) == label){
+			num++;
+			res += num*1.0 / (i + 1);
+		}
+		file_name_list.clear();
+	}
+	res = res / labelList[label];
+	return res;
+}
+
+int inital_feature_from_origin(int argc, char** argv){
+	const int num_required_args = 3;
+	if (argc < num_required_args) {
+		return 1;
+	}
+	int arg_pos=0;		
+	///
+	std::string ROOT_DIR;
+	std::string label;
+	std::string filename(argv[arg_pos++]);
+	int count = atoi(argv[arg_pos++]);
+	if(count>1)  
+		ROOT_DIR=(argv[arg_pos++]);
+	else{
+		label=(argv[arg_pos++]);
+	}
+	int Batch_Size = atoi(argv[arg_pos++]);
+	std::string save_filename(argv[arg_pos++]);
+	
+	///
+	
+	//std::cout<<"input done"<<std::endl;	
+	//int arg_pos = 0;
+	string model_file = "../models/pascal_voc/VGG16/faster_rcnn_end2end/test.prototxt";
+	string weights_file = "../data/faster_rcnn_models/PascalAndDetrac_iter_50000.caffemodel";
+	int GPUID = 0;
+	std::vector<cv::Mat> dv_list;
+	std::vector<int> dv_label;
+	
+	//GPU_MODE
+	char* mode = NULL;
+	if (argc > arg_pos){
+		mode = (char*)(std::string(argv[arg_pos++]).c_str());
+		GPUID = atoi(argv[arg_pos++]);
+		Caffe::SetDevice(GPUID);
+		Caffe::set_mode(Caffe::GPU);
+	}
+	else Caffe::set_mode(Caffe::CPU);
+	
+	///¿¿¿
+	Detector det = Detector(model_file, weights_file);
+	/////
+
+	std::cout<<"dect done"<<std::endl;
+	
+	std::string file_list_string;
+	std::ifstream in_file_list;
+	Info_String* info_str = new Info_String[count];
+	int totalcount=0;
+
+	if(count>1){
+		in_file_list.open(filename.c_str(), std::ios::in);
+
+		totalcount=0;
+		std::vector<std::string> file_name_list;	
+		for (int i = 0; i < count; i++){
+			getline(in_file_list, file_list_string);
+			boost::split(file_name_list, file_list_string, boost::is_any_of(" ,!"), boost::token_compress_on);
+		
+			std::string file_name_temp=ROOT_DIR+file_name_list[0]+".jpg";
+			cv::Mat im = cv::imread(file_name_temp);
+			std::vector<std::vector<int> > ans = det.Detect(im);
+		
+			for(int i = 0;i < ans.size();++i){
+				cv::Rect rect(ans[i][0],ans[i][1],ans[i][2] + ans[i][0],ans[i][3] + ans[i][1]);
+				//rectangle(im,cvPoint(ans[i][0],ans[i][1]),cvPoint(ans[i][2] + ans[i][0],ans[i][3] + ans[i][1]),Scalar(0,0,255),1,1,0);
+				cv::Mat image_roi;
+				cv::resize(im(rect),image_roi,cv::Size(224,224));
+				dv_list.push_back(image_roi);
+				dv_label.push_back(atoi(file_name_list[1].c_str()));
+				totalcount++;
+			}	
+			strcpy(info_str[i].info, (file_name_list[0] + " " + file_name_list[1]).c_str());
+		}
+		in_file_list.close();
+	}else{
+		cv::Mat im=cv::imread(filename.c_str());
+		std::vector<std::vector<int> > ans = det.Detect(im);
+		std::cout<<"read done"<<std::endl;
+		for(int i = 0;i < ans.size();++i){
+			cv::Rect rect(ans[i][0],ans[i][1],ans[i][2],ans[i][3]);
+            //rectangle(im,cvPoint(ans[i][0],ans[i][1]),cvPoint(ans[i][2] + ans[i][0],ans[i][3] + ans[i][1]),Scalar(0,0,255),1,1,0);
+            cv::Mat image_roi;
+			cv::resize(im(rect),image_roi,cv::Size(224,224));
+            dv_list.push_back(image_roi);
+            dv_label.push_back(atoi(label.c_str()));
+           	totalcount++;
+	   }	
+	}
+	if (std::fstream("./examples/_temp/googlenet_relu_deploy_memory.prototxt")){
+		remove("./examples/_temp/googlenet_relu_deploy_memory.prototxt");
+	}
+	std::stringstream int_stream;
+	int_stream << Batch_Size;
+	std::string out_dir = "sh ./examples/_temp/googlenet_relu_deploy.prototxt_memory.sh  " + int_stream.str();
+	system(out_dir.c_str());
+	
+	caffe::Net<float>* _net = Net_Init_Load<float>("./examples/_temp/googlenet_relu_deploy_memory.prototxt","./examples/_temp/train-400k_np_googlenet-yk_relu-1024_cls_iter_100000.caffemodel", caffe::TEST);
+	
+	caffe::MemoryDataLayer<float> *m_layer= (caffe::MemoryDataLayer<float> *)_net->layers()[0].get();
+	
+	m_layer->AddMatVector(dv_list, dv_label);
+
+	std::vector<caffe::Blob<float>*> input_vec;
+	
+	// Important
+	int batch_count=totalcount/Batch_Size;
+	char* feature_dbs=new char[totalcount*1024];
+	int dim_features;
+	for(int index_size=0;index_size<batch_count;++index_size){
+		_net->Forward(input_vec);
+		const boost::shared_ptr<Blob<float> > feature_blob = _net->blob_by_name(BLOB_NAME);
+		dim_features = feature_blob->count() / Batch_Size;
+		for (int n = 0; n < Batch_Size; ++n){
+			const float* feature_blob_data=feature_blob->cpu_data() +
+									feature_blob->offset(n);
+			for (int d = 0; d < dim_features; ++d) {
+				if (feature_blob_data[d]>0){
+					feature_dbs[d + (n + index_size*Batch_Size)*dim_features] = 1;
+				}
+				else{
+					feature_dbs[d + (n + index_size*Batch_Size)*dim_features] = 0;
+				}
+			}
+		}
+	}
+	
+	//Remain calc
+	bool isRemain=false;
+	int Remain=totalcount-Batch_Size*batch_count;
+	if(Remain >0 ){
+		std::cout<<"is Remain"<<std::endl;
+		isRemain=true;
+		_net->Forward(input_vec);
+	}
+ 
+	for (int n = 0; n < Remain && isRemain; ++n) {//data new
+		const boost::shared_ptr<Blob<float> > feature_blob = _net->blob_by_name(BLOB_NAME);
+		const float* feature_blob_data = feature_blob->cpu_data() +
+										feature_blob->offset(n);     
+		for (int d = 0; d < dim_features; ++d) {
+			if (feature_blob_data[d]>0.001){
+
+				feature_dbs[(batch_count*Batch_Size+n)*dim_features+d] = 1;
+			}
+			else{
+				feature_dbs[(batch_count*Batch_Size+n)*dim_features+d] = 0;
+			}
+		}
+	}
+	//store
+	void* p=CreateIndex(0);
+	InitIndex(p, feature_dbs, info_str, totalcount);
+	ArchiveIndex(p, save_filename.c_str(), (save_filename+="_info").c_str(), count, 'a');
+	DeleteIndex(p);
+	std::cout<<"Successfully"<<std::endl;
+	return 1;
+}
+template <typename Dtype>
+caffe::Net<Dtype>* Net_Init_Load(
+    std::string param_file, std::string pretrained_param_file, caffe::Phase phase)
+{
+    caffe::Net<Dtype>* net(new caffe::Net<Dtype>(param_file, phase));
+	std::cout<<"para done"<<std::endl;
+    net->CopyTrainedLayersFrom(pretrained_param_file);
+    return net;
+}
+
+
+
+int detect_feature(int argc, char** argv) {
+ 	google::InitGoogleLogging(argv[0]);	
+	const int num_required_args = 1;
+	if (argc < num_required_args) {
+		return 1;
+	}
+	int arg_pos = 0;
+	/// pa
+	std::string filename(argv[arg_pos++]);
+std::cout<<"input: "<< filename<<std::endl;
+	int index_end = filename.find_last_of(".");
+	int index_slash = filename.find_last_of("/");
+	string outname = filename.substr(index_slash+1, index_end - index_slash-1);
+	std::cout<<"input: "<< outname<<" "<<index_end<<" "<<index_slash<<std::endl;	
+	//int arg_pos = 0;
+	string model_file = "/home/slh/Vechile_Search/models/pascal_voc/VGG16/faster_rcnn_end2end/test.prototxt";
+	string weights_file = "/home/slh/Vechile_Search/data/faster_rcnn_models/PascalAndDetrac_iter_50000.caffemodel";
+	int GPUID = 0;
+	//GPU_MODE
+	char* mode = NULL;
+	if(argc > arg_pos) {
+		mode = (char*)(std::string(argv[arg_pos++]).c_str());
+		//set GPU 
+		GPUID = atoi(argv[arg_pos++]);
+		Caffe::SetDevice(GPUID);
+		Caffe::set_mode(Caffe::GPU);
+	}
+	else Caffe::set_mode(Caffe::CPU);
+
+	///
+	std::cout<<"detect begin"<<endl;
+	Detector det = Detector(model_file, weights_file);
+	/////
+
+	std::cout << "dect inital done" << std::endl;
+	
+
+
+	// count always is one
+	cv::Mat im = cv::imread(filename.c_str());
+	cv::Mat im2 = cv::imread(filename.c_str());
+	std::vector<std::vector<int> > ans = det.Detect(im);
+	
+	std::cout << "read done" << std::endl;
+	for (int i = 0; i < ans.size(); ++i) {
+		char temp = 'a';
+		cv::Rect rect(ans[i][0], ans[i][1], ans[i][2], ans[i][3]);
+		rectangle(im2,cvPoint(ans[i][0],ans[i][1]),cvPoint(ans[i][2] + ans[i][0],ans[i][3] + ans[i][1]),cv::Scalar(0,0,255),3,1,0);
+	//	cv::Mat image_roi;
+	//	cv::resize(im(rect), image_roi, cv::Size(224, 224));
+		IplImage qImg;
+		qImg = IplImage(im(rect)); // cv::Mat -> IplImage
+		temp += i;
+		std::string outname1 = outname + "_" + temp  + ".jpg";
+		cvSaveImage(std::string("/home/slh/pro/run/runResult/"+outname1).c_str(), &qImg);
+		/*dv_list.push_back(image_roi);
+		dv_label.push_back(atoi(label.c_str()));*/
+	}
+	//out im
+	IplImage qImg;
+	qImg = IplImage(im2); // cv::Mat -> IplImage
+	
+	outname = outname +  ".jpg";
+	cvSaveImage(std::string("/home/slh/pro/run/runResult/" + outname).c_str(), &qImg);
+	return 0;
+
+
+}

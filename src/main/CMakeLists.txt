@@ -1,0 +1,73 @@
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
+
+set(
+	SRC_LIST
+	main.cpp
+	)
+set(
+	SRC_INDEX
+	DoIndex.cpp
+	)
+ADD_DEFINITIONS(
+	-USE_OPENCV
+	)
+include_directories(
+	${PROJECT_SOURCE_DIR}/include
+	${PROJECT_SOURCE_DIR}/../lib/nms
+	${PROJECT_SOURCE_DIR}/../caffe-fast-rcnn/include
+	${PROJECT_SOURCE_DIR}/lib
+	/usr/local/include
+	/usr/include
+	/usr/include/python2.7
+	/opt/intel/mkl/include
+	/usr/local/cuda/include
+	)
+
+link_directories(
+	${PROJECT_SOURCE_DIR}/lib
+	${PROJECT_SOURCE_DIR}/../caffe-fast-rcnn/build/lib
+	${PROJECT_SOURCE_DIR}/../lib/nms
+	/usr/local/lib
+	/usr/local/lib/python2.7
+	/usr/lib
+	)
+
+add_executable(
+	main
+	${SRC_LIST}
+	)
+add_executable(
+	DoIndex
+	${SRC_INDEX}
+	)
+target_link_libraries(
+	main
+	libfaster_rcnn.so
+	libcaffe.so
+	libgpu_nms.so
+	libopencv_highgui.so
+	libopencv_core.so
+	libopencv_imgproc.so
+	libopencv_imgcodecs.so
+	libglog.so
+	libboost_system.so
+	libboost_python.so
+	libboost_thread.so
+	libpython2.7.so
+	)
+target_link_libraries(
+    DoIndex
+	libindex.so
+    libfaster_rcnn.so
+    libcaffe.so
+    libgpu_nms.so
+    libopencv_highgui.so
+    libopencv_core.so
+    libopencv_imgproc.so
+    libopencv_imgcodecs.so
+    libglog.so
+    libboost_system.so
+    libboost_python.so
+    libboost_thread.so
+	libpython2.7.so
+    )

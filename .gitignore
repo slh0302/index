@@ -1,0 +1,11 @@
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+CMakeCache.txt
+Makefile
+src/CMakeFiles/
+src/cmake_install.cmake
+src/Makefile
+examples/
+nohup.out*
+*.jpg

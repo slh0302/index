@@ -17,15 +17,14 @@ using std::string;
 using std::map;
 
 
-//¼ÇÂ¼Ò»¶¨Î»ÊıµÄÌØÕ÷
+//è®°å½•ä¸€å®šä½æ•°çš„ç‰¹å¾
 extern int table[( 1 << BYTE_INDEX )];
 extern unsigned short record[TOTALBYTESIZE/BYTE_INDEX];
 extern map<int, int> labelList;
 /*******************************************
-	SortTable:ÓÃÓÚÅÅĞòµÄÊı¾İ½á¹¹
-	sum£º¼ÍÂ¼Òì»òÖµ
-	string£º´æ´¢¶îÍâµÄinfoÖµ
-
+	SortTable:ç”¨äºæ’åºçš„æ•°æ®ç»“æ„
+	sumï¼šçºªå½•å¼‚æˆ–å€¼
+	stringï¼šå­˜å‚¨é¢å¤–çš„infoå€¼
 *******************************************/
 struct SortTable{
 	int sum;
@@ -48,27 +47,26 @@ struct Info_String
 	char info[100];
 };
 /******************************************
-	Feature:ÌØÕ÷´¦ÀíÀà
-	Êı¾İ£º
-		label£º´æ·ÅÌØÕ÷±êÇ©
-		data£º´æ·Å°´Î»·Ö¸ôµÄÊı¾İÊı×é
-		bytesize£º´æ·ÅÊı¾İµÄ°´Î»·Ö¸ô´óĞ¡
-	·½·¨£º
-
+	Feature:ç‰¹å¾å¤„ç†ç±»
+	æ•°æ®ï¼š
+		labelï¼šå­˜æ”¾ç‰¹å¾æ ‡ç­¾
+		dataï¼šå­˜æ”¾æŒ‰ä½åˆ†éš”çš„æ•°æ®æ•°ç»„
+		bytesizeï¼šå­˜æ”¾æ•°æ®çš„æŒ‰ä½åˆ†éš”å¤§å°
+	æ–¹æ³•ï¼š
 		init(int size):
-			³õÊ¼»¯·½·¨£¬³õÊ¼»¯bytesizeºÍdataµÄ¿Õ¼ä
+			åˆå§‹åŒ–æ–¹æ³•ï¼Œåˆå§‹åŒ–bytesizeå’Œdataçš„ç©ºé—´
 		void setData(int label, int* data):
-			Data±äÁ¿µÄsetº¯Êı
-		int* getData()£º
-			Data±ä
-			Á¿µÄgetº¯Êı
+			Dataå˜é‡çš„setå‡½æ•°
+		int* getData()ï¼š
+			Dataå˜
+			é‡çš„getå‡½æ•°
 *******************************************/
 class feature{
 private:
 	DataSet* Set;
 	Info_String* info;
 	int count;int str_count;
-	//totalSize£º×ÜµÄÊı×é¿Õ¼ä´óĞ¡
+	//totalSizeï¼šæ€»çš„æ•°ç»„ç©ºé—´å¤§å°
 	int totalSize ;
 public:
 	feature() :Set(NULL), count(0), totalSize(INITAL_TOTAL_SIZE){}
@@ -118,10 +116,6 @@ public:
 
 
 /****
-
-
-
-
 ************************/
 
 template<typename Dtype>
@@ -146,64 +140,65 @@ private:
 	std::ofstream db;
 
 };
-////ÅÅĞòº¯Êı£¬Ñ°ÕÒµÚK´ó
+////æ’åºå‡½æ•°ï¼Œå¯»æ‰¾ç¬¬Kå¤§
 void swap(SortTable *a, SortTable *b);
 int partition(SortTable arr[], int left, int right, int pivotIndex);
 int findKMax(SortTable arr[], int left, int right, int k);
 
-// ÅäÖÃº¯Êı
+// é…ç½®å‡½æ•°
 
-int* doHandle(char * dat);
+int* doHandle(unsigned char * dat);
 void CreateTable(const char * filename, int bits);
-//index º¯Êı
+//index å‡½æ•°
 /*******************************************
-	³õÊ¼»¯
-	¹¦ÄÜ´ı¶¨
+	åˆå§‹åŒ–
+	åŠŸèƒ½å¾…å®š
 ********************************************/
-void InitIndex(void* p,char* filename, Info_String* in_str, int count);
+void InitIndex(void* p,unsigned char* filename, Info_String* in_str, int count);
 
 /********************************************
-	int bits: ¶àÉÙÎ»µÄË÷Òı
-	int size: ¿ª¶à´óµÄÊı×é
-	·µ»ØÖµ
-		void*£º ·µ»ØË÷ÒıÖµ
+	int bits: å¤šå°‘ä½çš„ç´¢å¼•
+	int size: å¼€å¤šå¤§çš„æ•°ç»„
+	è¿”å›å€¼
+		void*ï¼š è¿”å›ç´¢å¼•å€¼
 ********************************************/
 void* CreateIndex(int size);
 
 
 /********************************************
-	Ôö¼ÓÊı¾İ¼ÇÂ¼
+	å¢åŠ æ•°æ®è®°å½•
 *********************************************/
 bool AddToIndex(void*p, int* data,const  char* in);
 
 /*********************************************
-	´ÓÍâ²àµ¼ÈëÊı¾İ
-		*p£º Ô­ÓĞµÄÖ¸Õë
-		filename: ÎÄ¼şÃû
-		count: ¶ÁÈëµÄÊı¾İÁ¿
+	ä»å¤–ä¾§å¯¼å…¥æ•°æ®
+		*pï¼š åŸæœ‰çš„æŒ‡é’ˆ
+		filename: æ–‡ä»¶å
+		count: è¯»å…¥çš„æ•°æ®é‡
 *********************************************/
 bool LoadIndex(void* p, const char* filename, const char*, int count);
+bool Load_SpData(DataSet*da, Info_String* inst, const char* filename,const char* info_file, int count,int sp_begin);
 
 /*********************************************
-	ÊÍ·ÅÄÚ´æ¿Õ¼ä
+	é‡Šæ”¾å†…å­˜ç©ºé—´
 *********************************************/
 bool DeleteIndex(void* p);
 
 /********************************************
-	´®ĞĞ»¯Ğ´ÈëÎÄ¼ş£º
-		count: indexµÄ¸öÊı
-		filename: ÎÄ¼şÃû
-		mode: ÎÄ¼şÉú³É·½Ê½  w:Ğ´Èë a:¸½¼Ó
+	ä¸²è¡ŒåŒ–å†™å…¥æ–‡ä»¶ï¼š
+		count: indexçš„ä¸ªæ•°
+		filename: æ–‡ä»¶å
+		mode: æ–‡ä»¶ç”Ÿæˆæ–¹å¼  w:å†™å…¥ a:é™„åŠ 
 ********************************************/
 bool ArchiveIndex(void* p, const char* filename, const char*,int count, char mode);
 
 /********************************************
-	¼ìË÷º¯Êı£º
-		input£ºÊäÈëµÄ°´Î»²ğ·ÖÊı×é
-		void *p£ºÌØÕ÷Êı¾İ¿â
-		result£º½á¹û·µ»ØµÄÍ¼Æ¬ÄÚÈİinfo
-		bits£ºÌØÕ÷²ğ·ÖµÄÎ»Êı
-		LIMIT:Òì»ò½á¹ûµÄãĞÖµ
+	æ£€ç´¢å‡½æ•°ï¼š
+		inputï¼šè¾“å…¥çš„æŒ‰ä½æ‹†åˆ†æ•°ç»„
+		void *pï¼šç‰¹å¾æ•°æ®åº“
+		resultï¼šç»“æœè¿”å›çš„å›¾ç‰‡å†…å®¹info
+		bitsï¼šç‰¹å¾æ‹†åˆ†çš„ä½æ•°
+		LIMIT:å¼‚æˆ–ç»“æœçš„é˜ˆå€¼
 *********************************************/
 int retrival(int* input, DataSet* get_t,Info_String* get_info,int total, std::string& result, int bits, int LIMIT,SortTable* );
 

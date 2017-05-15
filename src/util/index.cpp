@@ -60,7 +60,7 @@ int findKMax(SortTable arr[], int left, int right, int k){
 	³õÊ¼»¯
 	¹¦ÄÜ´ý¶¨
 */
-void InitIndex(void* p, char* filename, Info_String* in_str,int count){
+void InitIndex(void* p, unsigned char* filename, Info_String* in_str,int count){
 //
 	feature* temp = (feature*)p;
 	int i = 0;
@@ -68,29 +68,33 @@ void InitIndex(void* p, char* filename, Info_String* in_str,int count){
 	while (i<count){
 		for (int j = 0; j < TOTALBYTESIZE / BYTE_INDEX; j++){
 			unsigned int y = 0;
-			char x;
-			for (int k = 0; k < BYTE_INDEX; k++){
-				x = filename[i*TOTALBYTESIZE + j* BYTE_INDEX+k];
-				if (x == 0) y = y << 1;
-				else y = (y << 1) | 1;
-			}
+			y = filename[i*TOTALBYTESIZE / 8 + j* BYTE_INDEX / 8 ];
+			y = y << 8;
+			y = y | filename[i*TOTALBYTESIZE / 8 + j* BYTE_INDEX / 8 + 1];
 			s[i].data[j] = y;
 		}
 		i++;
 	}
+//	int k =0;
+//	while (k<count){
+//	    for(int i=0;i<TOTALBYTESIZE / BYTE_INDEX;i++){
+//	        cout<<s[k].data[i]<<" ";
+//	    }
+//	    cout<<std::endl;//<<" ";
+//	    k++;
+//	}
+
 	temp->setDataSet(s,count);
 	temp->setInfo(in_str, count);
 }
 
-int* doHandle(char * dat){
+int* doHandle(unsigned char * dat){
 	int * data = new int[TOTALBYTESIZE / BYTE_INDEX];
 	for (int j = 0; j < TOTALBYTESIZE / BYTE_INDEX; j++){
-		unsigned int y = 0;
-		char x;
-		for (int k = 0; k < BYTE_INDEX; k++){
-			if (dat[j*BYTE_INDEX+k] == 0) y = y << 1;
-			else y = (y << 1) | 1;
-		}
+	    unsigned int y = 0;
+        y = dat[j* BYTE_INDEX / 8 ];
+        y = y << 8;
+        y = y | dat[j* BYTE_INDEX / 8 + 1];
 		data[j] = y;
 	}
 	return data;
@@ -159,11 +163,23 @@ bool LoadIndex(void* p, const char* filename,const char* info_file, int count){
 	fread(inst, sizeof(Info_String), count, in_info);
 
 	fclose(in);
+	fclose(in_info);
 	temp->setInfo(inst, count);
 	temp->setDataSet(da, count);
 	return true;
 }
 
+// load from outside
+// split index
+bool Load_SpData(DataSet*da, Info_String* inst, const char* filename,const char* info_file, int count,int sp_begin){
+	FILE* in = fopen(filename, "rb");
+	FILE* in_info = fopen(info_file, "rb");
+	fread(&da[sp_begin], sizeof(DataSet) , count, in);
+	fread(&inst[sp_begin], sizeof(Info_String), count, in_info);
+	fclose(in);
+	fclose(in_info);
+	return true;
+}
 /*
 	ÊÍ·ÅÄÚ´æ¿Õ¼ä
 */
@@ -281,7 +297,7 @@ void retrival_thread(int* input, DataSet* get_t,int begin,int total, int bits, i
 	int calc = 0;
 	int i = 0, indexLine = 0;//从1开始的
 	int sum = 0;
-	cout<<"total"<<total<<endl;
+	//cout<<"total"<<total<<endl;
 	unsigned short temp_record[TOTALBYTESIZE / BYTE_INDEX];
 	while (calc < total){
 		sum = 0;
@@ -303,6 +319,6 @@ void retrival_thread(int* input, DataSet* get_t,int begin,int total, int bits, i
 		}
 
 	}
-	cout<<"index"<<indexLine<<endl;
+	//cout<<"index"<<indexLine<<endl;
 	line_record[0] = indexLine;
 }

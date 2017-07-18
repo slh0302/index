@@ -27,10 +27,10 @@ using caffe::Datum;
 using caffe::Net;
 namespace db = caffe::db;
 
-const std::string PROTO_FILE_PATH = "./examples/_temp/deploy_google_multilabel.prototxt";
-const std::string PROTO_MODEL_PATH = "./examples/_temp/wd_google_id_model_color_iter_100000.caffemodel";
-const std::string BLOB_NAME = "pool5/7x7_s1";
-const std::string SHELL_PATH="./examples/_temp/deploy_google_multilabel.prototxt.sh";
+const std::string PROTO_FILE_PATH = "./examples/_temp/deploy_googlenet_hash.prototxt";
+const std::string PROTO_MODEL_PATH = "./examples/_temp/wd_google_all_hash_relu_iter_120000.caffemodel";
+const std::string BLOB_NAME = "fc_hash/relu";
+const std::string SHELL_PATH="./examples/_temp/deploy_googlenet_hash.prototxt.sh";
 const std::string FILE_LIST_PATH="./examples/_temp/file_list";
 const int NUM_THREADS=40;
 double calc(int end,int label,SortTable*,Info_String* info_str);
@@ -143,12 +143,10 @@ int inital_feature_pipeline(int argc, char** argv){
 		getline(in_file_list, file_list_string);
 		boost::split(file_name_list, file_list_string, boost::is_any_of(" ,!"), boost::token_compress_on);
 		//in_file_list >> file_name_list[0]>>file_name_list[1];
-
+       // std::cout << ROOT_DIR << file_name_list[0] <<".jpg"<< " " << file_name_list[1] << std::endl;
         //out_file_list << ROOT_DIR << file_name_list[0] <<".jpg"<< " " << file_name_list[1] << std::endl;
 		//out_file_list << file_name_list[0] << " " << file_name_list[1] << std::endl;
-		strcpy(info_str[i].info, (file_name_list[0]+" "+ file_name_list[1]).c_str());
-        //std::cout  << info_str[i].info << std::endl;
-        //std::cout  << info_str[i].info << std::endl;
+		strcpy(info_str[i].info, (file_name_list[0] + " " + file_name_list[1]).c_str());
 	}
 	in_file_list.close();
 	///out_file_list.close();
@@ -173,12 +171,6 @@ int inital_feature_pipeline(int argc, char** argv){
     FILE * floatWrite = fopen(save_filename.c_str(),"wb");
     fwrite(Array_Data, sizeof(float), count * 1024, floatWrite);
     fclose(floatWrite);
-
-    //Info_String* info_str = new Info_String[count];
-    FILE* infoWrite =fopen((save_filename+"_info").c_str(),"wb");
-    fwrite(info_str, sizeof(Info_String), count, infoWrite);
-    fclose(infoWrite);
-
 	DeleteIndex(p);
 	std::cout << "Save done" << std::endl;
 	return 1;
@@ -576,11 +568,18 @@ int calc_spdata_feature_pipeline(int argc, char** argv){
 
 		recout << Timeuse << endl;
 		int return_num= 20<index_num ? 20:index_num;
+		std::cout<< return_num<<std::endl;
 		for( int i=0;i<return_num;i++){
 			std::vector< std::string > file_name_result;
 	        std::string file_result=get_info[sorttable[i].info].info;
+	        if(file_result.length() < 13){
+	            continue;
+	        }
+	        //std::cout<<"s: "<<sorttable[i].info<<" "<<get_info[sorttable[i].info].info<<std::endl;
 			boost::split(file_name_result,file_result, boost::is_any_of(" ,!"), boost::token_compress_on);
+			//std::cout<<file_name_result[0]<<" "<<file_name_result[0].length() <<std::endl;
 			recout <<file_name_result[0].substr(13, file_name_result[0].length() - 13)<< endl;
+			//std::cout<<"done"<<std::endl;
 		}
 		i++;
 		delete[] dt;

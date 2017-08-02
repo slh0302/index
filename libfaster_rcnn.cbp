@@ -11,30 +11,30 @@
 				<Option working_dir="/home/slh/Vechile_Search/libfaster_rcnn_cpp"/>
 				<Option type="4"/>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/Makefile&quot;  VERBOSE=1 all"/>
-					<CompileFile command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="rebuild_cache">
 				<Option working_dir="/home/slh/Vechile_Search/libfaster_rcnn_cpp"/>
 				<Option type="4"/>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
-					<CompileFile command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="edit_cache">
 				<Option working_dir="/home/slh/Vechile_Search/libfaster_rcnn_cpp"/>
 				<Option type="4"/>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/Makefile&quot;  VERBOSE=1 edit_cache"/>
-					<CompileFile command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="index">
@@ -62,10 +62,10 @@
 					<Add directory="/usr/include"/>
 				</Compiler>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 index"/>
-					<CompileFile command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 index"/>
+					<CompileFile command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="index/fast">
@@ -93,10 +93,10 @@
 					<Add directory="/usr/include"/>
 				</Compiler>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 index/fast"/>
-					<CompileFile command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 index/fast"/>
+					<CompileFile command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="faster_rcnn">
@@ -124,10 +124,10 @@
 					<Add directory="/usr/include"/>
 				</Compiler>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 faster_rcnn"/>
-					<CompileFile command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 faster_rcnn"/>
+					<CompileFile command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="faster_rcnn/fast">
@@ -155,10 +155,10 @@
 					<Add directory="/usr/include"/>
 				</Compiler>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 faster_rcnn/fast"/>
-					<CompileFile command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 faster_rcnn/fast"/>
+					<CompileFile command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/util/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="DoIndex">
@@ -185,10 +185,10 @@
 					<Add directory="/usr/include"/>
 				</Compiler>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 DoIndex"/>
-					<CompileFile command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 DoIndex"/>
+					<CompileFile command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="DoIndex/fast">
@@ -215,10 +215,10 @@
 					<Add directory="/usr/include"/>
 				</Compiler>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 DoIndex/fast"/>
-					<CompileFile command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 DoIndex/fast"/>
+					<CompileFile command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="main">
@@ -245,10 +245,10 @@
 					<Add directory="/usr/include"/>
 				</Compiler>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 main"/>
-					<CompileFile command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 main"/>
+					<CompileFile command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="main/fast">
@@ -275,10 +275,10 @@
 					<Add directory="/usr/include"/>
 				</Compiler>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 main/fast"/>
-					<CompileFile command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j56 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 main/fast"/>
+					<CompileFile command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j24 -f &quot;/home/slh/Vechile_Search/libfaster_rcnn_cpp/src/main/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 		</Build>

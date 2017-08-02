@@ -29,7 +29,7 @@ namespace db = caffe::db;
 
 const std::string PROTO_FILE_PATH = "./examples/_temp/deploy_google_multilabel.prototxt";
 const std::string PROTO_MODEL_PATH = "./examples/_temp/wd_google_id_model_color_iter_100000.caffemodel";
-const std::string BLOB_NAME = "pool5/7x7_s1";
+const std::string BLOB_NAME = "loss3/feat_normalize";   //"pool5/7x7_s1";
 const std::string SHELL_PATH="./examples/_temp/deploy_google_multilabel.prototxt.sh";
 const std::string FILE_LIST_PATH="./examples/_temp/file_list";
 const int NUM_THREADS=40;
@@ -100,7 +100,7 @@ int inital_feature_pipeline(int argc, char** argv){
 
 	//init 
 	std::string filename(argv[arg_pos++]);
-	//std::cout<<"done input"<<filename<<std::endl;
+
 	//std::string ROOT_DIR(argv[arg_pos++]);
 	int count = atoi(argv[arg_pos++]);
 	int Batch_Size = atoi(argv[arg_pos++]);
@@ -134,41 +134,18 @@ int inital_feature_pipeline(int argc, char** argv){
 
     // float test
     float* Array_Data = new float[count * 1024];
-	//unsigned char* Array_Data = new unsigned char[count * TOTALBYTESIZE / 8 ];
-   // std::cout<<"done info"<<std::endl;
-	//std::ofstream out_file_list(FILE_LIST_PATH.c_str(), std::ios::out);
-	//std::cout<<"count:  "<<count<<std::endl;
-	for (int i = 0; i < count; i++){
 
+	for (int i = 0; i < count; i++){
 		getline(in_file_list, file_list_string);
 		boost::split(file_name_list, file_list_string, boost::is_any_of(" ,!"), boost::token_compress_on);
-		//in_file_list >> file_name_list[0]>>file_name_list[1];
-
-        //out_file_list << ROOT_DIR << file_name_list[0] <<".jpg"<< " " << file_name_list[1] << std::endl;
-		//out_file_list << file_name_list[0] << " " << file_name_list[1] << std::endl;
 		strcpy(info_str[i].info, (file_name_list[0]+" "+ file_name_list[1]).c_str());
-        //std::cout  << info_str[i].info << std::endl;
-        //std::cout  << info_str[i].info << std::endl;
 	}
 	in_file_list.close();
 	///out_file_list.close();
 	std::cout<<"file done"<<std::endl;
 	feature_extraction_pipeline<float>(Array_Data, mode, count, dev_id);
-//	std::cout<<"feature done"<<std::endl;
 	feature*temp = (feature*)p;
-//    int kk =0;
-//    while(kk<count){
-//        for( int i=0 ;i< 1024;i++){
-//            std::cout<<Array_Data[i+kk*1024]<<" ";
-//        }
-//        std::cout<<std::endl;
-//        std::cout<<std::endl;
-//        kk++;
-//	}
-	//InitIndex(p, Array_Data, info_str, count);
-	//by default,the label file is saved as the name of "filename+_info"
-	//std::string str = save_filename + "_info";
-	//ArchiveIndex(p, save_filename.c_str(), str.c_str(), count, 'w');
+
 	std::cout<<"count "<<count<<std::endl;
     FILE * floatWrite = fopen(save_filename.c_str(),"wb");
     fwrite(Array_Data, sizeof(float), count * 1024, floatWrite);

@@ -27,10 +27,10 @@ using caffe::Datum;
 using caffe::Net;
 namespace db = caffe::db;
 
-const std::string PROTO_FILE_PATH = "./examples/_temp/deploy_person.prototxt";
-const std::string PROTO_MODEL_PATH = "./examples/_temp/model.caffemodel";
-const std::string BLOB_NAME = "loss3/feat_normalize";   //"pool5/7x7_s1";
-const std::string SHELL_PATH="./examples/_temp/deploy_person.prototxt.sh";
+const std::string PROTO_FILE_PATH = "./examples/_temp/deploy_google_multilabel.prototxt";
+const std::string PROTO_MODEL_PATH = "./examples/_temp/wd_google_id_model_color_iter_100000.caffemodel";
+const std::string BLOB_NAME = "pool5/7x7_s1";   //"pool5/7x7_s1";,loss3/feat_normalize
+const std::string SHELL_PATH="./examples/_temp/deploy_google_multilabel.prototxt.sh";
 const std::string FILE_LIST_PATH="./examples/_temp/file_list";
 const int NUM_THREADS=40;
 double calc(int end,int label,SortTable*,Info_String* info_str);
@@ -130,7 +130,7 @@ int inital_feature_pipeline(int argc, char** argv){
    
     std::ifstream in_file_list(filename.c_str(), std::ios::in);
 	std::cout<<"done info "<<count<<std::endl;
-    std::string ROOT_DIR = "/media/vehicle_res/person/out/";
+    std::string ROOT_DIR = "/media/vehicle_res/";
     // float test
     float* Array_Data = new float[count * 1024];
     std::ofstream offile(FILE_LIST_PATH.c_str(), std::ios::out);
@@ -138,7 +138,8 @@ int inital_feature_pipeline(int argc, char** argv){
 		getline(in_file_list, file_list_string);
 		boost::split(file_name_list, file_list_string, boost::is_any_of(" ,!"), boost::token_compress_on);
         offile << ROOT_DIR + file_name_list[0] << " " << i << std::endl;
-		strcpy(info_str[i].info, (file_name_list[1]+" "+ file_name_list[2] +" "+ file_name_list[3] +" "+file_name_list[4]+" "+file_name_list[5]).c_str());
+		strcpy(info_str[i].info, (file_name_list[1]+" "+ file_name_list[3] +" "+
+                file_name_list[4] +" "+file_name_list[5]+" "+file_name_list[6] + " " + file_name_list[7]).c_str());
 	}
 	in_file_list.close();
     offile.close();

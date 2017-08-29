@@ -484,7 +484,7 @@ void feature_extraction_pipeline(char* p,const char* CPU_MODE, int count,int GPU
 	//	feature_dbs.push_back(boost::shared_ptr<writeDb<Dtype> >(db));
 	//}
 	/*
-	¿ªÊý×é
+	??????
 	*/
 	char* feature_dbs = p;
 	std::vector<caffe::Blob<float>*> input_vec;
@@ -620,7 +620,7 @@ int inital_feature_from_origin(int argc, char** argv){
 	}
 	else Caffe::set_mode(Caffe::CPU);
 	
-	///¿¿¿
+	///???
 	Detector det = Detector(model_file, weights_file);
 	/////
 

@@ -760,7 +760,7 @@ int inital_feature_from_origin(int argc, char** argv){
 	}
 	else Caffe::set_mode(Caffe::CPU);
 	
-	///���
+	///?????????
 	Detector det = Detector(model_file, weights_file);
 	/////
 

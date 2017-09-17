@@ -27,12 +27,12 @@ using caffe::Datum;
 using caffe::Net;
 namespace db = caffe::db;
 
-std::string PROTO_FILE_PATH = "./examples/_temp/deploy_googlenet_hash.prototxt";
-std::string PROTO_MODEL_PATH = "./examples/_temp/wd_google_all_hash_relu_iter_120000.caffemodel";
-std::string BLOB_NAME = "fc_hash/relu";
-std::string SHELL_PATH="./examples/_temp/deploy_googlenet_hash.prototxt.sh";
-std::string FILE_LIST_PATH="./examples/_temp/file_list";
-const int NUM_THREADS=7;
+const std::string PROTO_FILE_PATH = "./examples/_temp/deploy_person.prototxt";
+const std::string PROTO_MODEL_PATH = "./examples/_temp/model.caffemodel";
+const std::string BLOB_NAME = "loss3/feat_normalize";   //"pool5/7x7_s1";
+const std::string SHELL_PATH="./examples/_temp/deploy_person.prototxt.sh";
+const std::string FILE_LIST_PATH="./examples/_temp/file_list";
+const int NUM_THREADS=40;
 double calc(int end,int label,SortTable*,Info_String* info_str);
 template <typename Dtype>
 caffe::Net<Dtype>* Net_Init_Load(std::string param_file, std::string pretrained_param_file, caffe::Phase phase);
@@ -47,12 +47,12 @@ int calc_feature_pipeline(int argc, char** argv);
 int Add_feature_pipeline(int argc, char** argv);
 int inital_feature_from_origin(int argc,char** argv);
 int detect_feature(int argc, char** argv);
-int person_calc_feature(int argc, char** argv);
+
 
 int main(int argc, char** argv){
 	char ch;
 //	std::cout<<argv[0]<<std::endl;
-	while ((ch = getopt(argc, argv, "iacodsp")) != EOF)
+	while ((ch = getopt(argc, argv, "iacods")) != EOF)
 	{
 		switch (ch)
 		{
@@ -80,10 +80,6 @@ int main(int argc, char** argv){
 			argc -= optind;
 			argv += optind;
 			return calc_spdata_feature_pipeline(argc, argv);
-        case 'p':
-            argc -= optind;
-            argv += optind;
-            return person_calc_feature(argc, argv);
 		default:
 			return 1;
 		}
@@ -104,7 +100,7 @@ int inital_feature_pipeline(int argc, char** argv){
 
 	//init 
 	std::string filename(argv[arg_pos++]);
-	//std::cout<<"done input"<<filename<<std::endl;
+
 	//std::string ROOT_DIR(argv[arg_pos++]);
 	int count = atoi(argv[arg_pos++]);
 	int Batch_Size = atoi(argv[arg_pos++]);
@@ -138,35 +134,42 @@ int inital_feature_pipeline(int argc, char** argv){
 
     // float test
     float* Array_Data = new float[count * 1024];
-	//unsigned char* Array_Data = new unsigned char[count * TOTALBYTESIZE / 8 ];
-   // std::cout<<"done info"<<std::endl;
-	//std::ofstream out_file_list(FILE_LIST_PATH.c_str(), std::ios::out);
-	//std::cout<<"count:  "<<count<<std::endl;
-	for (int i = 0; i < count; i++){
 
+	for (int i = 0; i < count; i++){
 		getline(in_file_list, file_list_string);
 		boost::split(file_name_list, file_list_string, boost::is_any_of(" ,!"), boost::token_compress_on);
-		//in_file_list >> file_name_list[0]>>file_name_list[1];
-       // std::cout << ROOT_DIR << file_name_list[0] <<".jpg"<< " " << file_name_list[1] << std::endl;
-        //out_file_list << ROOT_DIR << file_name_list[0] <<".jpg"<< " " << file_name_list[1] << std::endl;
-		//out_file_list << file_name_list[0] << " " << file_name_list[1] << std::endl;
-		strcpy(info_str[i].info, (file_name_list[0] + " " + file_name_list[1]).c_str());
+		strcpy(info_str[i].info, (file_name_list[0]+" "+ file_name_list[1]).c_str());
 	}
 	in_file_list.close();
 	///out_file_list.close();
 	std::cout<<"file done"<<std::endl;
 	feature_extraction_pipeline<float>(Array_Data, mode, count, dev_id);
-
 	feature*temp = (feature*)p;
-
+    int kk =0;
+    while(kk<10){
+        for( int i=0 ;i< 1024;i++){
+            std::cout<<Array_Data[i+kk*1024]<<" ";
+        }
+        std::cout<<std::endl;
+        std::cout<<std::endl;
+        kk++;
+	}
 	std::cout<<"count "<<count<<std::endl;
     FILE * floatWrite = fopen(save_filename.c_str(),"wb");
     fwrite(Array_Data, sizeof(float), count * 1024, floatWrite);
     fclose(floatWrite);
+
+    //Info_String* info_str = new Info_String[count];
+    FILE* infoWrite =fopen((save_filename+"_info").c_str(),"wb");
+    fwrite(info_str, sizeof(Info_String), count, infoWrite);
+    fclose(infoWrite);
+
 	DeleteIndex(p);
 	std::cout << "Save done" << std::endl;
 	return 1;
 }
+
+
 
 int Add_feature_pipeline(int argc, char** argv){
 	google::InitGoogleLogging(argv[0]);
@@ -242,7 +245,7 @@ int Add_feature_pipeline(int argc, char** argv){
 
 int calc_feature_pipeline(int argc, char** argv){
 	//InitGoogleLogging();
-    google::InitGoogleLogging(argv[0]);
+	 google::InitGoogleLogging(argv[0]);
    //  google::SetLogDestination(google::INFO,"/home//test_log/");
 	const int num_required_args = 4;
 	if (argc < num_required_args) {
@@ -393,7 +396,7 @@ int calc_feature_pipeline(int argc, char** argv){
 			std::vector< std::string > file_name_result;
 	        std::string file_result=get_info[sorttable[i].info].info;
 			boost::split(file_name_result,file_result, boost::is_any_of(" ,!"), boost::token_compress_on);
-			recout  << file_name_result[0] << endl;
+			recout <<"/cropdata/" << file_name_result[0]<<".jpg" << endl;
 		
 		}
 		i++;
@@ -551,25 +554,18 @@ int calc_spdata_feature_pipeline(int argc, char** argv){
 		Timeuse = 1000000*(endTime.tv_sec - startTime.tv_sec) + (endTime.tv_usec - startTime.tv_usec);
     	Timeuse /= 1000000;
 		totaltime+=Timeuse;
-		std::cout<<"One query time: "<<Timeuse<<std::endl;
+		cout<<"One query time: "<<Timeuse<<std::endl;
 //		double re=calc(index_num,query_label[i],sorttable,get_info);
 		//ress+=re;
 		ofstream recout("/home/slh/pro/run/runResult/result.txt",std::ios::out);
 
 		recout << Timeuse << endl;
 		int return_num= 20<index_num ? 20:index_num;
-		std::cout<< return_num<<std::endl;
 		for( int i=0;i<return_num;i++){
 			std::vector< std::string > file_name_result;
 	        std::string file_result=get_info[sorttable[i].info].info;
-	        if(file_result.length() < 13){
-	            continue;
-	        }
-	        //std::cout<<"s: "<<sorttable[i].info<<" "<<get_info[sorttable[i].info].info<<std::endl;
 			boost::split(file_name_result,file_result, boost::is_any_of(" ,!"), boost::token_compress_on);
-			//std::cout<<file_name_result[0]<<" "<<file_name_result[0].length() <<std::endl;
 			recout <<file_name_result[0].substr(13, file_name_result[0].length() - 13)<< endl;
-			//std::cout<<"done"<<std::endl;
 		}
 		i++;
 		delete[] dt;
@@ -580,171 +576,6 @@ int calc_spdata_feature_pipeline(int argc, char** argv){
 	return 1;
 }
 
-int person_calc_feature(int argc, char** argv){
-    // modify file name
-    ::PROTO_FILE_PATH = "./examples/_temp/deploy_person.prototxt";
-    ::PROTO_MODEL_PATH = "./examples/_temp/model.caffemodel";
-    ::BLOB_NAME = "loss3/feat_normalize";   //"pool5/7x7_s1";
-    ::SHELL_PATH="./examples/_temp/deploy_person.prototxt.sh";
-    //InitGoogleLogging();
-    google::InitGoogleLogging(argv[0]);
-    //  google::SetLogDestination(google::INFO,"/home//test_log/");
-    const int num_required_args = 4;
-    if (argc < num_required_args) {
-        return 1;
-    }
-    int arg_pos = 0;
-
-    // Create
-    void * p = CreateIndex(0);
-    // Create table
-    //std:cout<<"adasd"<<std::endl;
-    // Load
-    std::string filename(argv[arg_pos++]);
-    int count = atoi(argv[arg_pos++]);
-    // By default,the label file is saved as the name of "filename+_info"
-    std::string file_info = filename + "_info";
-    LoadIndex(p, filename.c_str(), file_info.c_str(), count);
-    // Input retrival data
-    std::string input_filename(argv[arg_pos++]);
-    int input_count = atoi(argv[arg_pos++]);
-    std::string label,file_list_string;
-    std::ifstream in_file_list;
-    std::string ROOT_DIR;
-    std::vector< std::string > file_name_list;
-    std::vector<int> query_label;
-    std::ofstream out_file_list(FILE_LIST_PATH.c_str(), std::ios::out);
-    if(!out_file_list) return 0;
-    if(input_count==1) {
-        label=argv[arg_pos++];
-        out_file_list << input_filename.c_str() <<" "<<label<<std::endl;
-        query_label.push_back(atoi(label.c_str()));
-    }else{
-        in_file_list.open(input_filename.c_str(), std::ios::in);
-        ROOT_DIR=argv[arg_pos++];
-    }//int i = 0;
-    //Extract feature
-
-    if (std::fstream(PROTO_FILE_PATH.c_str())){
-        remove(PROTO_FILE_PATH.c_str());
-    }
-    //std::cout<<"asdas"<<std::endl;
-    std::stringstream int_stream;
-    if(input_count==1) int_stream<<1;
-    else int_stream << (300<input_count?300:input_count);
-    //system("pwd");
-    std::string out_dir = "sh "+SHELL_PATH+" " + int_stream.str();
-    //std::cout<<out_dir<<std::endl;
-    system(out_dir.c_str());
-    //
-    //std::cout<<"input:  "<<input_count<<std::endl;
-    for(int k=0;k<input_count && input_count>1 ;k++){
-        getline(in_file_list, file_list_string);
-        std::cout<<file_list_string<<std::endl;
-        boost::split(file_name_list, file_list_string, boost::is_any_of(" ,!"), boost::token_compress_on);
-        query_label.push_back(atoi(file_name_list[1].c_str()));
-        out_file_list << ROOT_DIR << file_name_list[0] << ".jpg" << " " << file_name_list[1] << std::endl;
-    }
-    out_file_list.close();
-    //std::cout<<"done"<<std::endl;
-    int LIMIT=atoi(argv[arg_pos++]);
-    // Calc
-    char* mode = NULL;
-    int dev_id = 0;
-    if (argc > arg_pos){
-        mode = (char*)(std::string(argv[arg_pos++]).c_str());
-        dev_id = atoi(argv[arg_pos++]);
-    }
-
-    timeval startTime,endTime;
-    gettimeofday(&startTime,NULL);
-    unsigned char data[1024*input_count];
-    feature_extraction_pipeline<float>(data,mode, input_count,dev_id);
-    gettimeofday(&endTime,NULL);
-    float Timeuse;
-    Timeuse = 1000000*(endTime.tv_sec - startTime.tv_sec) + (endTime.tv_usec - startTime.tv_usec);
-    Timeuse /= 1000000;
-    //std::cout<<"feature extracted done, time used: "<<Timeuse<<std::endl;
-
-    feature* temp = (feature*)p;
-    int total=temp->getCount();
-    SortTable* sorttable=new SortTable[total];
-    DataSet* get_t=temp->getDataSet();
-    Info_String* get_info=temp->getInfoSet();
-
-    std::ifstream in_label;
-    in_label.open("./examples/_temp/labellist.txt", std::ios::in);
-    for (int i = 0; i < 141756; i++){
-        int name,datax;
-        in_label >> name >> datax;
-        labelList.insert(std::pair<int, int>(name, datax));
-    }
-    in_label.close();
-    int i=0;
-    double ress=0;
-    float totaltime=0;
-    //cout<<"label done"<<endl;
-    while(i<input_count){
-        std::string res;
-        int * dt=doHandle(data+i*1024);
-
-        //new thread change
-        boost::thread_group threads;
-        int index_num = 0;
-        //
-        gettimeofday(&startTime,NULL);
-        if (total % NUM_THREADS != 0){
-            index_num = retrival(dt, get_t, get_info, total, res, BYTE_INDEX, LIMIT, sorttable);
-        }
-        else{
-            int num_record[10];
-            for (int k = 0; k < NUM_THREADS; k++){
-                threads.create_thread(boost::bind(&retrival_thread, dt, &get_t[total/NUM_THREADS*k],total/NUM_THREADS*k, total / NUM_THREADS, BYTE_INDEX, LIMIT, &sorttable[(total / NUM_THREADS)*k], num_record+k));
-            }
-            threads.join_all();
-            int begin = num_record[0];
-            int end = 0;
-            for (int k = 1; k < NUM_THREADS; k++){
-                end = 0;
-                while (end < num_record[k]){
-                    sorttable[begin].sum = sorttable[(total / NUM_THREADS)*k+end].sum;
-                    sorttable[begin].info = sorttable[(total / NUM_THREADS)*k+end].info;
-                    begin++;
-                    end++;
-                }
-            }
-            index_num = 300<begin ? 300 : begin;
-            findKMax(sorttable, 0, begin - 1, index_num);
-            std::sort(sorttable, sorttable + index_num - 1);
-            res = get_info[sorttable[0].info].info;
-
-        }
-        gettimeofday(&endTime,NULL);
-        Timeuse = 1000000*(endTime.tv_sec - startTime.tv_sec) + (endTime.tv_usec - startTime.tv_usec);
-        Timeuse /= 1000000;
-        totaltime+=Timeuse;
-        //cout<<"One query time: "<<Timeuse<<std::endl;
-//		double re=calc(index_num,query_label[i],sorttable,get_info);
-        //ress+=re;
-        ofstream recout("/home/slh/pro/run/runResult/result.txt",std::ios::out);
-
-        recout << Timeuse << endl;
-        int return_num= 20<index_num ? 20:index_num;
-        for( int i=0;i<return_num;i++){
-            std::vector< std::string > file_name_result;
-            std::string file_result=get_info[sorttable[i].info].info;
-            boost::split(file_name_result,file_result, boost::is_any_of(" ,!"), boost::token_compress_on);
-            recout  << file_name_result[0] << endl;
-
-        }
-        i++;
-        delete[] dt;
-    }
-    //std::cout<<"res total: "<<ress/input_count<<" Total Time average: "<<totaltime/input_count<<std::endl;
-
-    //recout.close();
-    return 1;
-}
 
 template<typename Dtype>
 void feature_extraction_pipeline(float* p,const char* CPU_MODE, int count,int GPU_ID) {
@@ -908,7 +739,7 @@ int inital_feature_from_origin(int argc, char** argv){
 	}
 	else Caffe::set_mode(Caffe::CPU);
 	
-	///?????????
+	///���
 	Detector det = Detector(model_file, weights_file);
 	/////
 
@@ -1030,6 +861,7 @@ int inital_feature_from_origin(int argc, char** argv){
 	return 1;
 }
 
+
 template <typename Dtype>
 caffe::Net<Dtype>* Net_Init_Load(
     std::string param_file, std::string pretrained_param_file, caffe::Phase phase)
@@ -1039,6 +871,7 @@ caffe::Net<Dtype>* Net_Init_Load(
     net->CopyTrainedLayersFrom(pretrained_param_file);
     return net;
 }
+
 
 int detect_feature(int argc, char** argv) {
  	google::InitGoogleLogging(argv[0]);	
@@ -1108,6 +941,8 @@ int detect_feature(int argc, char** argv) {
 
 
 }
+
+
 
 template<typename Dtype>
 void feature_extraction_pipeline(unsigned char* p,const char* CPU_MODE, int count,int GPU_ID) {

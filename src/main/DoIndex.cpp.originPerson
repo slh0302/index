@@ -27,10 +27,10 @@ using caffe::Datum;
 using caffe::Net;
 namespace db = caffe::db;
 
-const std::string PROTO_FILE_PATH = "./examples/_temp/deploy_googlenet_hash.prototxt";
-const std::string PROTO_MODEL_PATH = "./examples/_temp/wd_google_all_hash_relu_iter_120000.caffemodel";
-const std::string BLOB_NAME = "fc_hash/relu";
-const std::string SHELL_PATH="./examples/_temp/deploy_googlenet_hash.prototxt.sh";
+const std::string PROTO_FILE_PATH = "./examples/_temp/deploy_google_multilabel.prototxt";
+const std::string PROTO_MODEL_PATH = "./examples/_temp/wd_google_id_model_color_iter_100000.caffemodel";
+const std::string BLOB_NAME = "pool5/7x7_s1";   //"pool5/7x7_s1";
+const std::string SHELL_PATH="./examples/_temp/deploy_google_multilabel.prototxt.sh";
 const std::string FILE_LIST_PATH="./examples/_temp/file_list";
 const int NUM_THREADS=40;
 double calc(int end,int label,SortTable*,Info_String* info_str);
@@ -84,7 +84,6 @@ int main(int argc, char** argv){
 			return 1;
 		}
 	}
-
 }
 
 int inital_feature_pipeline(int argc, char** argv){
@@ -100,7 +99,7 @@ int inital_feature_pipeline(int argc, char** argv){
 
 	//init 
 	std::string filename(argv[arg_pos++]);
-	//std::cout<<"done input"<<filename<<std::endl;
+
 	//std::string ROOT_DIR(argv[arg_pos++]);
 	int count = atoi(argv[arg_pos++]);
 	int Batch_Size = atoi(argv[arg_pos++]);
@@ -131,46 +130,45 @@ int inital_feature_pipeline(int argc, char** argv){
    
     std::ifstream in_file_list(filename.c_str(), std::ios::in);
 	std::cout<<"done info "<<count<<std::endl;
-
+    std::string ROOT_DIR = "/media/vehicle_res/";
     // float test
     float* Array_Data = new float[count * 1024];
-	//unsigned char* Array_Data = new unsigned char[count * TOTALBYTESIZE / 8 ];
-   // std::cout<<"done info"<<std::endl;
-	//std::ofstream out_file_list(FILE_LIST_PATH.c_str(), std::ios::out);
-	//std::cout<<"count:  "<<count<<std::endl;
+    std::ofstream offile(FILE_LIST_PATH.c_str(), std::ios::out);
 	for (int i = 0; i < count; i++){
-
 		getline(in_file_list, file_list_string);
 		boost::split(file_name_list, file_list_string, boost::is_any_of(" ,!"), boost::token_compress_on);
-		//in_file_list >> file_name_list[0]>>file_name_list[1];
-       // std::cout << ROOT_DIR << file_name_list[0] <<".jpg"<< " " << file_name_list[1] << std::endl;
-        //out_file_list << ROOT_DIR << file_name_list[0] <<".jpg"<< " " << file_name_list[1] << std::endl;
-		//out_file_list << file_name_list[0] << " " << file_name_list[1] << std::endl;
-		strcpy(info_str[i].info, (file_name_list[0] + " " + file_name_list[1]).c_str());
+		if(file_name_list.size() < 7) {
+            std::cout << "line num: " << i << std::endl;
+            std::cout << "file wrong " << std::endl;
+        }
+        offile << ROOT_DIR + file_name_list[0] << " " << file_name_list[2] << std::endl;
+		strcpy(info_str[i].info, (file_name_list[1]+" "+file_name_list[2]+" "+ file_name_list[3] + " "+ file_name_list[4] + " "+ file_name_list[5] + " "+ file_name_list[6]).c_str());
 	}
 	in_file_list.close();
+    offile.close();
 	///out_file_list.close();
 	std::cout<<"file done"<<std::endl;
 	feature_extraction_pipeline<float>(Array_Data, mode, count, dev_id);
-//	std::cout<<"feature done"<<std::endl;
 	feature*temp = (feature*)p;
-//    int kk =0;
-//    while(kk<count){
-//        for( int i=0 ;i< 1024;i++){
-//            std::cout<<Array_Data[i+kk*1024]<<" ";
-//        }
-//        std::cout<<std::endl;
-//        std::cout<<std::endl;
-//        kk++;
-//	}
-	//InitIndex(p, Array_Data, info_str, count);
-	//by default,the label file is saved as the name of "filename+_info"
-	//std::string str = save_filename + "_info";
-	//ArchiveIndex(p, save_filename.c_str(), str.c_str(), count, 'w');
+    int kk =0;
+    while(kk<5){
+        std::cout<<info_str[kk].info<<std::endl;
+        for( int i=0 ;i< 1024;i++){
+            std::cout<<Array_Data[i+kk*1024]<<" ";
+        }
+        std::cout<<std::endl;
+        kk++;
+	}
 	std::cout<<"count "<<count<<std::endl;
     FILE * floatWrite = fopen(save_filename.c_str(),"wb");
     fwrite(Array_Data, sizeof(float), count * 1024, floatWrite);
     fclose(floatWrite);
+
+    //Info_String* info_str = new Info_String[count];
+    FILE* infoWrite =fopen((save_filename+"_info").c_str(),"wb");
+    fwrite(info_str, sizeof(Info_String), count, infoWrite);
+    fclose(infoWrite);
+
 	DeleteIndex(p);
 	std::cout << "Save done" << std::endl;
 	return 1;
@@ -568,18 +566,11 @@ int calc_spdata_feature_pipeline(int argc, char** argv){
 
 		recout << Timeuse << endl;
 		int return_num= 20<index_num ? 20:index_num;
-		std::cout<< return_num<<std::endl;
 		for( int i=0;i<return_num;i++){
 			std::vector< std::string > file_name_result;
 	        std::string file_result=get_info[sorttable[i].info].info;
-	        if(file_result.length() < 13){
-	            continue;
-	        }
-	        //std::cout<<"s: "<<sorttable[i].info<<" "<<get_info[sorttable[i].info].info<<std::endl;
 			boost::split(file_name_result,file_result, boost::is_any_of(" ,!"), boost::token_compress_on);
-			//std::cout<<file_name_result[0]<<" "<<file_name_result[0].length() <<std::endl;
 			recout <<file_name_result[0].substr(13, file_name_result[0].length() - 13)<< endl;
-			//std::cout<<"done"<<std::endl;
 		}
 		i++;
 		delete[] dt;

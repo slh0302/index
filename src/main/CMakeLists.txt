@@ -8,6 +8,10 @@ set(
 	SRC_INDEX
 	DoIndex.cpp
 	)
+set(
+	SRC_INDEX_INIT
+	DoIndex_init.cpp
+)
 ADD_DEFINITIONS(
 	-USE_OPENCV
 	)
@@ -40,6 +44,10 @@ add_executable(
 	DoIndex
 	${SRC_INDEX}
 	)
+add_executable(
+	DoIndex_init
+	${SRC_INDEX_INIT}
+)
 target_link_libraries(
 	main
 	libfaster_rcnn.so
@@ -71,3 +79,19 @@ target_link_libraries(
     libboost_thread.so
 	libpython2.7.so
     )
+target_link_libraries(
+		DoIndex_init
+		libindex.so
+		libfaster_rcnn.so
+		libcaffe.so
+		libgpu_nms.so
+		libopencv_highgui.so
+		libopencv_core.so
+		libopencv_imgproc.so
+		libopencv_imgcodecs.so
+		libglog.so
+		libboost_system.so
+		libboost_python.so
+		libboost_thread.so
+		libpython2.7.so
+)
